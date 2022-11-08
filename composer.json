@@ -1,0 +1,8 @@
+{
+    "require": {
+        "defuse/php-encryption": "^2.3",
+        "vlucas/phpdotenv": "^5.5",
+        "twbs/bootstrap": "^5.2",
+        "ext-pdo": "*"
+    }
+}

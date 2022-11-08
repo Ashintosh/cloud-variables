@@ -1,0 +1,179 @@
+:root {
+    --main-color: #06de9d;
+    --main-color-hover: #019b71;
+}
+
+body {
+    background-color: #1f1f1f;
+    font-family: Inter-Regular, serif;
+}
+
+.header {
+    padding-top: 25px;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+.header .title h2 a {
+    color: black;
+    text-decoration: none;
+}
+.header .title h2 a:hover {
+    color: var(--main-color-hover);
+    text-decoration: none;
+    transition: all .2s ease;
+}
+.header .nav {
+
+}
+.header .nav ul li {
+    display: inline-block;
+    list-style-type: none;
+}
+.header .nav a {
+    color: var(--main-color);
+    padding: 10px 10px 10px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-family: Inter-Bold, serif;
+    transition: all .2s ease;
+}
+.header .nav a:hover {
+    color: var(--main-color-hover);
+}
+.header .nav .active {
+    color: var(--main-color-hover);
+}
+
+.page {
+    background-color: #eaeaea;
+    padding: 20px 20px 20px 20px;
+    border-radius: 6px;
+}
+.page .form-wrapper form label {
+    display: block;
+}
+.page .form-wrapper form input[type="text"], [type="email"], [type="password"] {
+    margin-bottom: 13px;
+    margin-top: 5px;
+    border-radius: 3px;
+    border: none;
+}
+.page .form-wrapper form input[type="submit"] {
+    margin-top: 10px;
+    padding: 7px 14px 7px 14px;
+    background-color: var(--main-color);
+    border-radius: 6px;
+    transition: all .2s ease;
+    border: none;
+}
+.page .form-wrapper form input[type="submit"]:hover {
+    background-color: var(--main-color-hover);
+    color: white;
+}
+.page .form-wrapper .res-success {
+    color: var(--main-color-hover);
+}
+.page .form-wrapper .res-error {
+    color: #be0000;
+}
+.page .secret-info {
+    width: 65%;
+    padding-bottom: 40px;
+}
+.page .api-calls {
+    float: right;
+    padding-right: 10px;
+}
+.page .api-calls p span {
+    font-family: Inter-Bold, serif;
+}
+.page .api-calls p a {
+    color: var(--main-color-hover);
+    text-decoration: none;
+    transition: all .2s ease;
+}
+.page .api-calls p a:hover {
+    color: var(--main-color);
+    text-decoration: none;
+}
+.page .table-wrapper {
+
+}
+.page .table-wrapper table {
+    text-align: center;
+    width: 100%;
+    border: 1px double grey;
+}
+.page .table-wrapper table th {
+    border: 1px double grey;
+}
+.page .table-wrapper table td {
+    border: 1px double grey;
+}
+.page .table-wrapper table thead tr {
+    background-color: var(--main-color);
+}
+.page .table-wrapper table tbody tr:nth-child(odd) {
+    background-color: #eaeaea;
+}
+.page .table-wrapper table tbody tr:nth-child(even) {
+    background-color: white;
+}
+.page .table-wrapper table tbody tr td a {
+    color: var(--main-color-hover);
+    text-decoration: none;
+    transition: all .2s ease;
+    padding-right: 10px;
+    padding-left: 10px;
+}
+.page .table-wrapper table tbody tr td a:hover {
+    color: var(--main-color);
+}
+.page .btn-primary {
+    margin-top: 10px;
+    padding: 7px 14px 7px 14px;
+    background-color: var(--main-color);
+    border-radius: 6px;
+    transition: all .2s ease;
+    border: none;
+}
+.page .btn-primary:hover {
+    background-color: var(--main-color-hover);
+    color: white;
+}
+
+/* OhSnap! JS Alert Styles */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    margin-top: 21px;
+    border: 1px solid #eed3d7;
+    border-radius: 4px;
+    position: absolute;
+    bottom: 0px;
+    right: 21px;
+    /* Each alert has its own width */
+    float: right;
+    clear: right;
+}
+
+#ohsnap .alert-red {
+    color: white;
+    background-color: #DA4453;
+}
+#ohsnap .alert-green {
+    color: white;
+    background-color: #37BC9B;
+}
+#ohsnap .alert-blue {
+    color: white;
+    background-color: #4A89DC;
+}
+#ohsnap .alert-yellow {
+    color: white;
+    background-color: #F6BB42;
+}
+#ohsnap .alert-orange {
+    color:white;
+    background-color: #E9573F;
+}

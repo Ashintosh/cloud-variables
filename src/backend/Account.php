@@ -37,7 +37,7 @@ class Account {
     /**
      * @throws Exception
      */
-    public function create_account ($username, $password, $confirm_password, $email): bool {
+    public function create_account (string $username, string $password, string $confirm_password, string $email): bool {
         $username = $this->string_tools->sanitize_string($username);
         $username_lower  = strtolower($username);
         $email_lower     = strtolower($email);
@@ -119,7 +119,7 @@ class Account {
             }
         }
 
-        $api_key_secret = $this->crypto->create_secure_random_string(64, true);
+        $api_key_secret      = hash('sha512', $password_hash);
         $api_key_secret_salt = $this->crypto->create_secure_random_string(15);
         $api_key_secret_hash = $this->crypto->create_password_hash($api_key_secret, $api_key_secret_salt);
 
@@ -131,19 +131,6 @@ class Account {
             return false;
         }
 
-        $api_key_secret_encrypted = $this->crypto->aes256($api_key_secret, $password);
-
-        $query = "UPDATE `cv_users` SET api_key_secret = :api_key_secret WHERE uid = :uid";
-        $stmt = $this->conn->prepare($query);
-
-        $stmt->bindParam(":api_key_secret", $api_key_secret_encrypted);
-        $stmt->bindParam(":uid", $uid);
-
-        if (!$stmt->execute()) {
-            $this->cookies->set("res-msg", "unknown_error");
-            return false;
-        }
-
         $this->cookies->set("res-msg", "register_successful");
         return true;
     }
@@ -151,7 +138,7 @@ class Account {
     /**
      * @throws Exception
      */
-    public function login_account ($login_name, $password): bool {
+    public function login_account (string $login_name, string $password): bool {
         $login_name = $this->string_tools->sanitize_string($login_name);
         $login_name_lower = strtolower($login_name);
 
@@ -185,12 +172,32 @@ class Account {
             return false;
         }
 
+        $username   = $db_data['username'];
+        $email      = $db_data['email'];
+        $user_group = $db_data['user_group'];
+        $upgrades   = $db_data['upgrades'];
+
+        $query = "SELECT api_key_id FROM `cv_api_keys` WHERE owner_uid = :owner_uid";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":owner_uid", $uid);
+
+        if (!$stmt->execute()) {
+            $this->cookies->set("res-msg", "unknown_error");
+            return false;
+        }
+
+        $db_data = $stmt->fetch();
+        $api_key_id = $db_data['api_key_id'];
+
         $response = json_encode(array(
-            "status" => true,
-            "uid" => $uid,
-            "username" => $db_data['username'],
-            "email" => $db_data['email'],
-            "login_key" => $login_key
+            "status"     => true,
+            "uid"        => $uid,
+            "username"   => $username,
+            "email"      => $email,
+            "user_group" => $user_group,
+            "upgrades"   => $upgrades,
+            "api_key_id" => $api_key_id,
+            "login_key"  => $login_key
         ));
 
         $this->sessions->set_security_sessions();
@@ -216,7 +223,7 @@ class Account {
         return true;
     }
 
-    public function change_email ($new_email, $current_password): bool {
+    public function change_email (string $new_email, string $current_password): bool {
         if (!$this->validate_login_status()) {
             $this->cookies->set("res-msg", "invalid_login");
             return false;
@@ -249,7 +256,7 @@ class Account {
     /**
      * @throws Exception
      */
-    public function change_password ($new_password, $confirm_new_password, $current_password): bool {
+    public function change_password (string $new_password, string $confirm_new_password, string $current_password): bool {
         if (!$this->validate_login_status()) {
             $this->cookies->set("res-msg", "invalid_login");
             return false;
@@ -315,7 +322,7 @@ class Account {
         return true;
     }
 
-    public function delete_account ($password): bool {
+    public function delete_account (string $password): bool {
         if ($this->sessions->get("login_data") == null) {
             $this->cookies->set("res-msg", "invalid_login");
             return false;
@@ -339,7 +346,7 @@ class Account {
         return true;
     }
 
-    private function verify_password ($password, $uid): bool {
+    private function verify_password (string $password, int $uid): bool {
         $query = "SELECT uid, password, salt FROM `cv_users` WHERE uid = :uid";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":uid", $uid);
@@ -359,7 +366,7 @@ class Account {
         return true;
     }
 
-    private function validate_password_strength ($password, $confirm_password): bool {
+    private function validate_password_strength (string $password, string $confirm_password): bool {
         $has_special = $this->string_tools->has_special($password);
         $has_number  = $this->string_tools->has_number($password);
         if ($password != $confirm_password) {

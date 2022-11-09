@@ -36,7 +36,7 @@ $sessions = new Sessions();
                             <?php if ($sessions->get("login_data") != null): ?>
                                 <li><a href="panel/">Panel</a></li>
                                 <li><a href="panel/settings/">Settings</a></li>
-                                <li><a href="">Sign out</a></li>
+                                <li><a href="panel/settings/settings.php?action=sign-out">Sign out</a></li>
                             <?php else: ?>
                                 <li><a href="login/">Login</a></li>
                                 <li><a href="signup/">Sign Up</a></li>

@@ -13,6 +13,7 @@ $sessions = new Sessions();
 $cookies  = new Cookies();
 $account  = new Account();
 
+$sessions->validate_all();
 if (!$account->validate_login_status()) {
     header("Location: ../login/");
     exit;

@@ -56,7 +56,7 @@ class Cryptography {
         return password_verify($salt . $password . $salt, $hash);
     }
 
-    public function aes256 ($str, $cipher_key, $decrypt_data = false): string {
+    public function aes256 (string $str, string $cipher_key, bool $decrypt_data = false): string {
         if (!$decrypt_data) {
             $salt = $this->create_random_string(15);
             $derived_key = $this->create_pbkdf2_key($cipher_key, $salt);

@@ -39,7 +39,7 @@ class Database {
         return $pdo;
     }
 
-    public function db_crypt ($str, $decrypt = false): string {
+    public function db_crypt (string $str, bool $decrypt = false): string {
         $key = $this->env->get_variable("DB_CRYPT_KEY");
         return $this->crypto->aes256($str, $key, $decrypt);
     }

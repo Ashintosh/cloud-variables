@@ -16,6 +16,7 @@ $cookies      = new Cookies();
 $string_tools = new StringTools();
 $account      = new Account();
 
+$sessions->validate_all();
 if (!$account->validate_login_status()) {
     header("Location: ../../login/");
     exit;
@@ -25,6 +26,15 @@ $user_data = json_decode($sessions->get("login_data"), true);
 
 $username = $string_tools->sanitize_string($user_data['username']);
 $email = $string_tools->sanitize_string($user_data['email']);
+
+$api_key_id = null;
+if ($user_data['api_key_id'] != null) {
+    $api_key_id = "No API Key";
+    $generate_btn_txt = "Generate API Key";
+} else {
+    $api_key_id = $user_data['api_key_id'];
+    $generate_btn_txt = "Regenerate API Key";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -70,18 +80,15 @@ $email = $string_tools->sanitize_string($user_data['email']);
                 <div class="col">
                     <p>API Key ID</p>
                     <div class="secret-key">
-                        <p>This is a test id</p>
-                    </div>
-
-                    <p>API Key Secret</p>
-                    <div class="secret-key">
-                        <p>This is a test secret</p>
+                        <p><?php echo $api_key_id; ?></p>
                     </div>
                 </div>
                 <div class="col">
-                    <button class="btn-primary">Show Key</button>
-                    <button class="btn-primary">Copy Key</button>
-                    <button class="btn-primary">Regenerate Key</button>
+                    <?php if ($user_data['api_key_id'] != null): ?>
+                        <button class="btn-primary">Generate API Key</button>
+                    <?php else: ?>
+                        <button class="btn-primary">Copy ID</button>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="col">

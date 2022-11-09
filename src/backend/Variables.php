@@ -22,14 +22,16 @@ class Variables {
         $this->string_tools = new StringTools();
     }
 
-    public function get_variable ($name): string {
+    public function get_variable (string $name): string {
         $name = $this->string_tools->sanitize_string($name);
 
 
     }
 
-    public function set_variable ($name, $value): bool {
+    public function set_variable (string $name, string $value): bool {
         $name = $this->string_tools->sanitize_string($name);
 
     }
+
+    // Todo: Add delete_variable() function
 }

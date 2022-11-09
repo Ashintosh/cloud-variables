@@ -1,0 +1,43 @@
+/* OhSnap! JS Alert Styles */
+#ohsnap {
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+    margin-left: 5px;
+    z-index: 99;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    margin-top: 21px;
+    border: 1px solid #eed3d7;
+    border-radius: 4px;
+    position: absolute;
+    bottom: 0;
+    right: 21px;
+    /* Each alert has its own width */
+    float: right;
+    clear: right;
+}
+
+#ohsnap .alert-red {
+    color: white;
+    background-color: #DA4453;
+}
+#ohsnap .alert-green {
+    color: white;
+    background-color: #37BC9B;
+}
+#ohsnap .alert-blue {
+    color: white;
+    background-color: #4A89DC;
+}
+#ohsnap .alert-yellow {
+    color: white;
+    background-color: #F6BB42;
+}
+#ohsnap .alert-orange {
+    color:white;
+    background-color: #E9573F;
+}

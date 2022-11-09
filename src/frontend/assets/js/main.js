@@ -13,7 +13,7 @@ window.onload = function () {
         case "register_successful":        msg = 'Registration successful! Log in to continue.'; msg_color = 'green';                  break;
         case "email_change_successful":    msg = 'Email has been successfully changed.';         msg_color = 'green';                  break;
         case "password_change_successful": msg = 'Password has been successfully changed.';      msg_color = 'green';                  break;
-        case "account_delete_successful":  msg = 'Account has been deleted.'              ;      msg_color = 'green';                  break;
+        case "account_delete_successful":  msg = 'Account has been deleted.';                    msg_color = 'green';                  break;
         case "unknown_error":              msg = 'An unknown error has occurred.';                                                     break;
     }
     if (msg != null) {
@@ -22,7 +22,7 @@ window.onload = function () {
     }
 };
 
-function get_cookie(cname) {
+function get_cookie (cname) {
     let name = cname + "=";
     let decodedCookie = decodeURIComponent(document.cookie);
     let ca = decodedCookie.split(';');
@@ -38,6 +38,6 @@ function get_cookie(cname) {
     return "";
 }
 
-function erase_cookie(name) {
-    document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+function erase_cookie (cname) {
+    document.cookie = cname +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }

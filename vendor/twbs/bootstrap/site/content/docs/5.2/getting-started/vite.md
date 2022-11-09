@@ -49,7 +49,7 @@ We've already created the `my-project` folder and initialized npm. Now we'll als
 
 ```sh
 mkdir {src,src/js,src/scss}
-touch src/index.html src/js/main.js src/scss/styles.scss vite.config.js
+touch src/index.php src/js/main.js src/scss/styles.scss vite.config.js
 ```
 
 When you're done, your complete project should look like this:

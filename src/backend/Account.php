@@ -9,6 +9,7 @@ require_once (realpath(dirname(__FILE__) . '/../utils/Cookies.php'));
 require_once (realpath(dirname(__FILE__) . '/../utils/Cryptography.php'));
 require_once (realpath(dirname(__FILE__) . '/../utils/StringTools.php'));
 
+use Exception;
 use utils\Database;
 use utils\Sessions;
 use utils\Cookies;
@@ -33,6 +34,9 @@ class Account {
         $this->conn = $this->database->connect();
     }
 
+    /**
+     * @throws Exception
+     */
     public function create_account ($username, $password, $confirm_password, $email): bool {
         $username = $this->string_tools->sanitize_string($username);
         $username_lower  = strtolower($username);
@@ -48,18 +52,9 @@ class Account {
             return false;
         }
 
-        $has_special_char = $this->string_tools->has_special($password);
-        $has_number_char = $this->string_tools->has_number($password);
-        if ($password != $confirm_password) {
-            $this->cookies->set("res-msg", "password_mismatch");
-            return false;
-        }
-        if (strlen($password) < 6 || !$has_special_char || !$has_number_char) {
-            $this->cookies->set("res-msg", "invalid_password");
-            return false;
-        }
+        if (!$this->validate_password_strength($password, $confirm_password)) return false;
 
-        $salt = $this->crypto->create_random_string(15);
+        $salt = $this->crypto->create_secure_random_string(15);
         $password_hash = $this->crypto->create_password_hash($password, $salt);
 
         $query = "SELECT username, email FROM `cv_users` WHERE LOWER(username) = :username OR email = :email";
@@ -92,15 +87,71 @@ class Account {
             return false;
         }
 
+        $query = "SELECT username, uid FROM `cv_users` WHERE LOWER(username) = :username";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":username", $username_lower);
+
+        if (!$stmt->execute()) {
+            $this->cookies->set("res-msg", "unknown_error");
+            return false;
+        }
+
+        $db_data = $stmt->fetch();
+        $uid = $db_data['uid'];
+
+        $api_key_id = null;
+        $id_found = false;
+        while (!$id_found) {
+            $uid_length = strlen((string) $uid);
+            $api_key_id = $uid . $this->crypto->create_secure_random_string(45 - $uid_length);
+
+            $query = "SELECT api_key_id FROM `cv_api_keys` WHERE api_key_id = :api_key_id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(":api_key_id", $api_key_id);
+
+            if (!$stmt->execute()) {
+                $this->cookies->set("res-msg", "unknown_error");
+                return false;
+            }
+
+            if ($stmt->rowCount() < 1) {
+                $id_found = true;
+            }
+        }
+
+        $api_key_secret = $this->crypto->create_secure_random_string(64, true);
+        $api_key_secret_salt = $this->crypto->create_secure_random_string(15);
+        $api_key_secret_hash = $this->crypto->create_password_hash($api_key_secret, $api_key_secret_salt);
+
+        $query = "INSERT INTO `cv_api_keys` (api_key_id, api_key_secret, api_key_salt, owner_uid) VALUES (?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($query);
+
+        if (!$stmt->execute([$api_key_id, $api_key_secret_hash, $api_key_secret_salt, $uid])) {
+            $this->cookies->set("res-msg", "unknown_error");
+            return false;
+        }
+
+        $api_key_secret_encrypted = $this->crypto->aes256($api_key_secret, $password);
+
+        $query = "UPDATE `cv_users` SET api_key_secret = :api_key_secret WHERE uid = :uid";
+        $stmt = $this->conn->prepare($query);
+
+        $stmt->bindParam(":api_key_secret", $api_key_secret_encrypted);
+        $stmt->bindParam(":uid", $uid);
+
+        if (!$stmt->execute()) {
+            $this->cookies->set("res-msg", "unknown_error");
+            return false;
+        }
+
         $this->cookies->set("res-msg", "register_successful");
         return true;
     }
 
+    /**
+     * @throws Exception
+     */
     public function login_account ($login_name, $password): bool {
-        if ($this->sessions->get("login_data") != null) {
-            return true;
-        }
-
         $login_name = $this->string_tools->sanitize_string($login_name);
         $login_name_lower = strtolower($login_name);
 
@@ -121,7 +172,7 @@ class Account {
             return false;
         }
 
-        $login_key = $this->crypto->create_random_string(32);
+        $login_key = $this->crypto->create_secure_random_string(32);
         $login_key_hash = hash('sha512', $login_key);
 
         $query = "UPDATE `cv_users` SET login_key = :login_key WHERE uid = :uid";
@@ -165,7 +216,7 @@ class Account {
         return true;
     }
 
-    public function change_email ($new_email): bool {
+    public function change_email ($new_email, $current_password): bool {
         if (!$this->validate_login_status()) {
             $this->cookies->set("res-msg", "invalid_login");
             return false;
@@ -174,6 +225,8 @@ class Account {
         $new_email_lower = $this->string_tools->sanitize_string(strtolower($new_email));
         $user_data = json_decode($this->sessions->get("login_data"), true);
         $uid = (int) $user_data['uid'];
+
+        if (!$this->verify_password($current_password, $uid)) return false;
 
         $query = "UPDATE `cv_users` SET email = :email WHERE uid = :uid";
         $stmt = $this->conn->prepare($query);
@@ -186,10 +239,16 @@ class Account {
             return false;
         }
 
+        $user_data['email'] = $new_email_lower;
+        $this->sessions->set("login_data", json_encode($user_data, true));
+
         $this->cookies->set("res-msg", "email_change_successful");
         return true;
     }
 
+    /**
+     * @throws Exception
+     */
     public function change_password ($new_password, $confirm_new_password, $current_password): bool {
         if (!$this->validate_login_status()) {
             $this->cookies->set("res-msg", "invalid_login");
@@ -199,14 +258,10 @@ class Account {
         $user_data = json_decode($this->sessions->get("login_data"), true);
         $uid = (int) $user_data['uid'];
 
-        if ($new_password != $confirm_new_password) {
-            $this->cookies->set("res-msg", "password_mismatch");
-            return false;
-        }
-
+        if (!$this->validate_password_strength($new_password, $confirm_new_password)) return false;
         if (!$this->verify_password($current_password, $uid)) return false;
 
-        $new_salt = $this->crypto->create_random_string(15);
+        $new_salt = $this->crypto->create_secure_random_string(15);
         $new_password_hash = $this->crypto->create_password_hash($new_password, $new_salt);
 
         $query = "UPDATE `cv_users` SET password = :password, salt = :salt WHERE uid = :uid";
@@ -228,12 +283,14 @@ class Account {
 
     public function validate_login_status (): bool {
         if ($this->sessions->get("login_data") == null) {
-            $this->cookies->set("res-msg", "invalid_login");
             return false;
         }
 
         $user_data = json_decode($this->sessions->get("login_data"), true);
         $uid = (int) $user_data['uid'];
+
+        $local_lkey = $user_data['login_key'];
+        $local_lkey_hash = hash('sha512', $local_lkey);
 
         $query = "SELECT uid, login_key FROM `cv_users` WHERE uid = :uid";
         $stmt = $this->conn->prepare($query);
@@ -244,11 +301,14 @@ class Account {
             return false;
         }
 
-        $db_data = $stmt->fetch();
-        $db_login_key = $db_data['login_key'];
+        if (!$stmt->rowCount() > 0) {
+            return false;
+        }
 
-        if ($db_login_key != hash('sha512', $user_data['login_key'])) {
-            $this->cookies->set("res-msg", "invalid_login");
+        $db_data = $stmt->fetch();
+
+        if ($db_data['login_key'] != $local_lkey_hash) {
+            $this->sessions->unset("login_data");
             return false;
         }
 
@@ -261,7 +321,7 @@ class Account {
             return false;
         }
 
-        $user_data = json_decode($this->sessions->get("login_data"), true);
+        $user_data = json_decode($this->sessions->get("login_data"));
         $uid = (int) $user_data['uid'];
 
         if (!$this->verify_password($password, $uid)) return false;
@@ -296,6 +356,20 @@ class Account {
             return false;
         }
 
+        return true;
+    }
+
+    private function validate_password_strength ($password, $confirm_password): bool {
+        $has_special = $this->string_tools->has_special($password);
+        $has_number  = $this->string_tools->has_number($password);
+        if ($password != $confirm_password) {
+            $this->cookies->set("res-msg", "password_mismatch");
+            return false;
+        }
+        if (strlen($password) < 6 || !$has_number || !$has_special) {
+            $this->cookies->set("res-msg", "invalid_password");
+            return false;
+        }
         return true;
     }
 }

@@ -8,14 +8,40 @@ require_once (realpath(dirname(__FILE__) . '/../../vendor/autoload.php'));
 use \Defuse\Crypto\Crypto;
 use \Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException;
 use \Defuse\Crypto\Exception\EnvironmentIsBrokenException;
+use Exception;
 
 class Cryptography {
-    public function create_random_string ($length = 128): string {
+    public function create_random_string (int $length = 128): string {
         if ($length > 128) $length = 128;
-        return substr(hash('sha256', openssl_random_pseudo_bytes(128)), 0, $length);
+        return substr(hash('sha256', openssl_random_pseudo_bytes(128) . uniqid()), 0, $length);
     }
 
-    public function create_password_hash ($password, $salt): string {
+    /**
+     * @throws Exception
+     */
+    public function create_secure_random_string (int $length = 128, $symbols = false): string {
+        if ($length < 1)    $length = 1;
+        if ($length > 1024) $length = 1024;
+
+        $unique_id = uniqid() . uniqid() . uniqid() . uniqid();
+        $keyspace = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        // if ($symbols) $keyspace .= "~!@#$%^&*()_+{}[]:;<,>.?/|";
+        if ($symbols) $keyspace .= "()_{}[]:;<,>./|@$";
+
+        $keyspace = str_shuffle($keyspace . $unique_id);
+
+        $pieces = [];
+        $max = mb_strlen($keyspace, '8bit') - 1;
+
+        for ($i = 0; $i < $length; ++$i) {
+                $pieces []= $keyspace[random_int(0, $max)];
+        }
+
+        return implode('', $pieces);
+    }
+
+    public function create_password_hash (string $password, string $salt): string {
         // Change these values for production server
         return password_hash($salt . $password . $salt, PASSWORD_ARGON2ID,
             [
@@ -26,7 +52,7 @@ class Cryptography {
         );
     }
 
-    public function verify_password_hash ($password, $hash, $salt): bool {
+    public function verify_password_hash (string $password, string $hash, string $salt): bool {
         return password_verify($salt . $password . $salt, $hash);
     }
 
@@ -51,7 +77,7 @@ class Cryptography {
         return $deciphered_text;
     }
 
-    private function create_pbkdf2_key ($password, $salt): string {
+    private function create_pbkdf2_key (string $password, string $salt): string {
         return hash_pbkdf2("sha256", $password, $salt, 1000, 128);
     }
 }

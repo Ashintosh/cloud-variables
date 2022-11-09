@@ -1,3 +1,13 @@
+<?php
+// error_reporting(E_ERROR);
+
+require_once (realpath(dirname(__FILE__) . '/../utils/Sessions.php'));
+
+use utils\Sessions;
+
+$sessions = new Sessions();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,9 +33,15 @@
                 <div class="col-4">
                     <div class="nav">
                         <ul>
-                            <li><a href="login/">Login</a></li>
-                            <li><a href="signup/">Sign Up</a></li>
-                            <li><a href="contact/">Contact</a></li>
+                            <?php if ($sessions->get("login_data") != null): ?>
+                                <li><a href="panel/">Panel</a></li>
+                                <li><a href="panel/settings/">Settings</a></li>
+                                <li><a href="">Sign out</a></li>
+                            <?php else: ?>
+                                <li><a href="login/">Login</a></li>
+                                <li><a href="signup/">Sign Up</a></li>
+                                <li><a href="contact/">Contact</a></li>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </div>

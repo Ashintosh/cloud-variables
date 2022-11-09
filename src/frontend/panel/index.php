@@ -17,7 +17,6 @@ if (!$account->validate_login_status()) {
     header("Location: ../login/");
     exit;
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,7 +28,9 @@ if (!$account->validate_login_status()) {
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../assets/css/styles.css">
     <link rel="stylesheet" href="../assets/css/fonts.css">
-    <link rel="stylesheet" href="../../../vendor/twbs/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/ohsnap!.css">
+    <!-- <link rel="stylesheet" href="../../../vendor/twbs/bootstrap/dist/css/bootstrap.min.css"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
 </head>
 <body>
 <div id="ohsnap"></div>
@@ -46,60 +47,57 @@ if (!$account->validate_login_status()) {
                 <div class="nav">
                     <ul>
                         <li><a class="active">Panel</a></li>
-                        <li><a href="../signup/">Settings</a></li>
-                        <li><a href="../contact/">Sign out</a></li>
+                        <li><a href="settings/">Settings</a></li>
+                        <li><a href="settings/settings.php?action=sign-out">Sign out</a></li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
     <div class="page">
-        <div class="row align-items-start">
-            <div class="secret-info">
-                <div class="col">
-                    <p>API Secret Key: ********************************************</p>
-                </div>
-                <div class="col">
-                    <button class="btn-primary">Show Key</button>
-                </div>
-            </div>
-            <div class="col">
-                <div class="api-calls">
-                    <p>API Calls Left: <span>50</span></p>
-                    <p>Click <a href="order/">here</a> to buy more.</p>
-                </div>
-            </div>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Variable Name</th>
-                        <th>Variable Value</th>
-                        <th>Options</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>Var1</td>
-                        <td>This is a test value.</td>
-                        <td>
-                            <a href="">Show</a>
-                            <a href="">Edit</a>
-                            <a href="">Delete</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Var2</td>
-                        <td>Desc 5</td>
-                        <td>Desc 6</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="page-header">
+            <h2>Panel</h2>
+        </div>
+        <p>
+            2/&infin;
+            <br>
+            <a href="settings/order/">Get more variable space.</a>
+        </p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Variable Name</th>
+                    <th>Variable Value</th>
+                    <th>Options</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="no-overflow">
+                    <td>Var1</td>
+                    <td>****************************************************</td>
+                    <td>
+                        <a href="">Show</a>
+                        <a href="">Edit</a>
+                        <a class="delete" href="">Delete</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Var2</td>
+                    <td>***************</td>
+                    <td>
+                        <a href="">Show</a>
+                        <a href="">Edit</a>
+                        <a class="delete" href="">Delete</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<!-- <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
 <script type="text/javascript" src="../assets/js/main.js"></script>
 <script type="text/javascript" src="../assets/js/OhSnap!.js"></script>
 </body>

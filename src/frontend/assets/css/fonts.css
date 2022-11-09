@@ -1,3 +1,4 @@
+/* Inter */
 @font-face {
     font-family: Inter-Regular;
     src: url('../fonts/Inter/static/Inter-Regular.ttf');
@@ -9,4 +10,19 @@
 @font-face {
     font-family: Inter-Light;
     src: url('../fonts/Inter/static/Inter-Light.ttf');
+}
+
+
+/* Source Code Pro */
+@font-face {
+    font-family: SourceCodePro;
+    src: url('../fonts/SourceCodePro/static/SourceCodePro-Regular.ttf');
+}
+@font-face {
+    font-family: SourceCodePro-Bold;
+    src: url('../fonts/SourceCodePro/static/SourceCodePro-Bold.ttf');
+}
+@font-face {
+    font-family: SourceCodePro-Light;
+    src: url('../fonts/SourceCodePro/static/SourceCodePro-Light.ttf');
 }

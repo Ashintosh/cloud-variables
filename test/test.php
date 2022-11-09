@@ -1,9 +1,11 @@
 <?php
-include "../src/utils/Database.php";
+include "../src/utils/Cryptography.php";
+include "../src/utils/StringTools.php";
 
-use \utils\Database;
+use \utils\Cryptography;
+use \utils\StringTools;
 
-$database = new Database();
-$database->connect();
+$crypto = new Cryptography();
+$string_tools = new StringTools();
 
-echo "Done.";
+echo $crypto->create_secure_random_string(64, true);

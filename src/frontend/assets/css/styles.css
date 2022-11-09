@@ -10,8 +10,6 @@ body {
 
 .header {
     padding-top: 25px;
-    padding-left: 50px;
-    padding-right: 50px;
 }
 .header .title h2 a {
     color: black;
@@ -23,7 +21,8 @@ body {
     transition: all .2s ease;
 }
 .header .nav {
-
+    float: right;
+    padding-top: 20px;
 }
 .header .nav ul li {
     display: inline-block;
@@ -49,14 +48,39 @@ body {
     padding: 20px 20px 20px 20px;
     border-radius: 6px;
 }
+.page hr {
+    border: none;
+    border-top: medium double var(--main-color);
+}
+.page a {
+    color: var(--main-color-hover);
+    text-decoration: none;
+    transition: all .2s ease;
+}
+.page a:hover {
+    color: var(--main-color);
+    text-decoration: none;
+}
+.page .form-wrapper {
+    text-align: center;
+
+}
+.page .form-wrapper .form-title h3 {
+    font-size: 18px;
+    padding-bottom: 16px;
+}
 .page .form-wrapper form label {
     display: block;
+}
+.page .form-wrapper form label span {
+    color: red;
 }
 .page .form-wrapper form input[type="text"], [type="email"], [type="password"] {
     margin-bottom: 13px;
     margin-top: 5px;
     border-radius: 3px;
     border: none;
+    width: 60%;
 }
 .page .form-wrapper form input[type="submit"] {
     margin-top: 10px;
@@ -70,34 +94,40 @@ body {
     background-color: var(--main-color-hover);
     color: white;
 }
-.page .form-wrapper .res-success {
-    color: var(--main-color-hover);
-}
-.page .form-wrapper .res-error {
-    color: #be0000;
+.page .form-wrapper .save-changes {
+    text-align: center;
+    padding-top: 12px;
 }
 .page .secret-info {
+    background-color: #e3e3dc;
     width: 65%;
-    padding-bottom: 40px;
+    margin-bottom: 40px;
+    border-radius: 7px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-left: 50px;
+}
+.page .secret-info .secret-key {
+    font-family: SourceCodePro, serif;
+    background-color: rgba(128, 128, 128, 0.22);
+    padding-left: 7px;
+    margin-bottom: 15px;
+    height: 30px;
+    overflow-y: scroll;
+    border-radius: 5px;
 }
 .page .api-calls {
-    float: right;
-    padding-right: 10px;
+    text-align: center;
+
 }
 .page .api-calls p span {
     font-family: Inter-Bold, serif;
 }
-.page .api-calls p a {
-    color: var(--main-color-hover);
-    text-decoration: none;
-    transition: all .2s ease;
-}
-.page .api-calls p a:hover {
-    color: var(--main-color);
-    text-decoration: none;
+.page .page-header {
+    padding-bottom: 15px;
 }
 .page .table-wrapper {
-
+    overflow-y: scroll;
 }
 .page .table-wrapper table {
     text-align: center;
@@ -120,6 +150,7 @@ body {
     background-color: white;
 }
 .page .table-wrapper table tbody tr td a {
+    font-family: Inter-Bold, serif;
     color: var(--main-color-hover);
     text-decoration: none;
     transition: all .2s ease;
@@ -129,6 +160,15 @@ body {
 .page .table-wrapper table tbody tr td a:hover {
     color: var(--main-color);
 }
+.page .table-wrapper .delete {
+    color: #ff0000;
+}
+.page .table-wrapper .delete:hover {
+    color: #a60000;
+}
+.no-overflow {
+    overflow-y: scroll;
+}
 .page .btn-primary {
     margin-top: 10px;
     padding: 7px 14px 7px 14px;
@@ -136,44 +176,16 @@ body {
     border-radius: 6px;
     transition: all .2s ease;
     border: none;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 .page .btn-primary:hover {
     background-color: var(--main-color-hover);
     color: white;
 }
 
-/* OhSnap! JS Alert Styles */
-.alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    margin-top: 21px;
-    border: 1px solid #eed3d7;
-    border-radius: 4px;
-    position: absolute;
-    bottom: 0px;
-    right: 21px;
-    /* Each alert has its own width */
-    float: right;
-    clear: right;
-}
-
-#ohsnap .alert-red {
-    color: white;
-    background-color: #DA4453;
-}
-#ohsnap .alert-green {
-    color: white;
-    background-color: #37BC9B;
-}
-#ohsnap .alert-blue {
-    color: white;
-    background-color: #4A89DC;
-}
-#ohsnap .alert-yellow {
-    color: white;
-    background-color: #F6BB42;
-}
-#ohsnap .alert-orange {
-    color:white;
-    background-color: #E9573F;
+@media screen and (max-width: 1000px) {
+    .header .nav ul li {
+        display: block;
+    }
 }

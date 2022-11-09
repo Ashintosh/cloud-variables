@@ -8,7 +8,9 @@ session_regenerate_id();
 
 class Sessions {
     public function validate_all (): void {
-
+        $this->validate_user_agent();
+        $this->validate_remote_address();
+        $this->validate_access_time();
     }
 
     public function set_security_sessions (): void {
@@ -25,8 +27,8 @@ class Sessions {
     }
 
     public function get ($name, $set_last_access = true) {
-        if ($set_last_access)         $_SESSION['last_access'] = time();
         if (!isset($_SESSION[$name])) return null;
+        if ($set_last_access) $_SESSION['last_access'] = time();
 
         return $_SESSION[$name];
     }

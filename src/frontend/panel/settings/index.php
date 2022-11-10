@@ -4,16 +4,19 @@
 require_once (realpath(dirname(__FILE__) . '/../../../utils/Sessions.php'));
 require_once (realpath(dirname(__FILE__) . '/../../../utils/Cookies.php'));
 require_once (realpath(dirname(__FILE__) . '/../../../utils/StringTools.php'));
+require_once (realpath(dirname(__FILE__) . '/../../../utils/Cryptography.php'));
 require_once (realpath(dirname(__FILE__) . '/../../../backend/Account.php'));
 
 use utils\Sessions;
 use utils\Cookies;
 use utils\StringTools;
+use utils\Cryptography;
 use backend\Account;
 
 $sessions     = new Sessions();
 $cookies      = new Cookies();
 $string_tools = new StringTools();
+$crypto       = new Cryptography();
 $account      = new Account();
 
 $sessions->validate_all();
@@ -28,13 +31,19 @@ $username = $string_tools->sanitize_string($user_data['username']);
 $email = $string_tools->sanitize_string($user_data['email']);
 
 $api_key_id = null;
+$api_key_secret = null;
+
 if ($user_data['api_key_id'] != null) {
-    $api_key_id = "No API Key";
-    $generate_btn_txt = "Generate API Key";
-} else {
     $api_key_id = $user_data['api_key_id'];
-    $generate_btn_txt = "Regenerate API Key";
 }
+else $api_key_id = "[No key data]";
+
+if ($sessions->get("res-key") != null) {
+    $res_key = $crypto->aes256($sessions->get("res-key"), $sessions->get_session_key(), true);
+    $res_key = json_decode($res_key, true);
+    $api_key_secret = $res_key['api_key_secret'];
+}
+else $api_key_secret = "****************";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -82,13 +91,13 @@ if ($user_data['api_key_id'] != null) {
                     <div class="secret-key">
                         <p><?php echo $api_key_id; ?></p>
                     </div>
+                    <p>API Key Secret</p>
+                    <div class="secret-key">
+                        <p><?php echo $api_key_secret; ?></p>
+                    </div>
                 </div>
                 <div class="col">
-                    <?php if ($user_data['api_key_id'] != null): ?>
-                        <button class="btn-primary">Generate API Key</button>
-                    <?php else: ?>
-                        <button class="btn-primary">Copy ID</button>
-                    <?php endif; ?>
+                    <a href="settings.php?action=regenerate-key"><button class="btn-primary">Regenerate API Key</button></a>
                 </div>
             </div>
             <div class="col">
@@ -141,3 +150,5 @@ if ($user_data['api_key_id'] != null) {
 <script type="text/javascript" src="../../assets/js/OhSnap!.js"></script>
 </body>
 </html>
+
+<?php if ($sessions->get("res-key") != null) { $sessions->unset("res-key"); } ?>

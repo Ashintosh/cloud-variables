@@ -3,6 +3,10 @@
 
 namespace backend;
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once (realpath(dirname(__FILE__) . '/../utils/Database.php'));
 require_once (realpath(dirname(__FILE__) . '/../utils/Sessions.php'));
 require_once (realpath(dirname(__FILE__) . '/../utils/Cookies.php'));
@@ -99,6 +103,27 @@ class Account {
         $db_data = $stmt->fetch();
         $uid = $db_data['uid'];
 
+        $query = "INSERT INTO `cv_api_keys` (owner_uid) VALUES (?)";
+        $stmt = $this->conn->prepare($query);
+
+        if (!$stmt->execute([$uid])) {
+            $this->cookies->set("res-msg", "unknown_error");
+            return false;
+        }
+
+        /*
+        $query = "SELECT username, uid FROM `cv_users` WHERE LOWER(username) = :username";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":username", $username_lower);
+
+        if (!$stmt->execute()) {
+            $this->cookies->set("res-msg", "unknown_error");
+            return false;
+        }
+
+        $db_data = $stmt->fetch();
+        $uid = $db_data['uid'];
+
         $api_key_id = null;
         $id_found = false;
         while (!$id_found) {
@@ -119,7 +144,7 @@ class Account {
             }
         }
 
-        $api_key_secret      = hash('sha512', $password_hash);
+        $api_key_secret      = $this->crypto->create_secure_random_string(64, true);
         $api_key_secret_salt = $this->crypto->create_secure_random_string(15);
         $api_key_secret_hash = $this->crypto->create_password_hash($api_key_secret, $api_key_secret_salt);
 
@@ -130,6 +155,7 @@ class Account {
             $this->cookies->set("res-msg", "unknown_error");
             return false;
         }
+        */
 
         $this->cookies->set("res-msg", "register_successful");
         return true;
@@ -142,7 +168,7 @@ class Account {
         $login_name = $this->string_tools->sanitize_string($login_name);
         $login_name_lower = strtolower($login_name);
 
-        $query = "SELECT uid, username, password, salt, email FROM `cv_users` WHERE LOWER(username) = :login_name OR email = :login_name";
+        $query = "SELECT uid, username, password, salt, email, user_group, upgrades FROM `cv_users` WHERE LOWER(username) = :login_name OR email = :login_name";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":login_name", $login_name_lower);
 
@@ -152,7 +178,12 @@ class Account {
         }
 
         $db_data = $stmt->fetch();
-        $uid = (int) $db_data['uid'];
+
+        $uid        = (int) $db_data['uid'];
+        $username   = $db_data['username'];
+        $email      = $db_data['email'];
+        $user_group = $db_data['user_group'];
+        $upgrades   = $db_data['upgrades'];
 
         if ($stmt->rowCount() < 1 || !$this->crypto->verify_password_hash($password, $db_data['password'], $db_data['salt'])) {
             $this->cookies->set("res-msg", "invalid_login");
@@ -172,12 +203,7 @@ class Account {
             return false;
         }
 
-        $username   = $db_data['username'];
-        $email      = $db_data['email'];
-        $user_group = $db_data['user_group'];
-        $upgrades   = $db_data['upgrades'];
-
-        $query = "SELECT api_key_id FROM `cv_api_keys` WHERE owner_uid = :owner_uid";
+        $query = "SELECT api_key_id, owner_uid FROM `cv_api_keys` WHERE owner_uid = :owner_uid";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":owner_uid", $uid);
 
@@ -196,8 +222,8 @@ class Account {
             "email"      => $email,
             "user_group" => $user_group,
             "upgrades"   => $upgrades,
-            "api_key_id" => $api_key_id,
-            "login_key"  => $login_key
+            "login_key"  => $login_key,
+            "api_key_id" => $api_key_id
         ));
 
         $this->sessions->set_security_sessions();
@@ -323,12 +349,12 @@ class Account {
     }
 
     public function delete_account (string $password): bool {
-        if ($this->sessions->get("login_data") == null) {
+        if (!$this->validate_login_status()) {
             $this->cookies->set("res-msg", "invalid_login");
             return false;
         }
 
-        $user_data = json_decode($this->sessions->get("login_data"));
+        $user_data = json_decode($this->sessions->get("login_data"), true);
         $uid = (int) $user_data['uid'];
 
         if (!$this->verify_password($password, $uid)) return false;
@@ -343,6 +369,91 @@ class Account {
         }
 
         $this->cookies->set("res-msg", "account_delete_successful");
+        return true;
+    }
+
+    public function generate_api_key (): bool {
+        if (!$this->validate_login_status()) {
+            $this->cookies->set("res-msg", "invalid_login");
+            return false;
+        }
+
+        $user_data = json_decode($this->sessions->get("login_data"), true);
+        $uid = (int) $user_data['uid'];
+
+        $query = "SELECT api_key_id FROM `cv_api_keys` WHERE api_key_id = :api_key_id";
+        $stmt = $this->conn->prepare($query);
+
+        $api_key_id = null;
+        $id_found = false;
+
+        while (!$id_found) {
+            $api_key_id = $uid . $this->crypto->create_secure_random_string(45);
+            $stmt->bindParam(":api_key_id", $api_key_id);
+
+            if (!$stmt->execute()) {
+                $this->cookies->set("res-msg", "unknown_error");
+                return false;
+            }
+
+            if ($stmt->rowCount() < 1) {
+                $id_found = true;
+            }
+        }
+
+        $api_key_secret      = $this->crypto->create_secure_random_string(64, true);
+        $api_key_secret_salt = $this->crypto->create_secure_random_string(15);
+        $api_key_secret_hash = $this->crypto->create_password_hash($api_key_secret, $api_key_secret_salt);
+
+        $query = "SELECT owner_uid FROM `cv_api_keys` WHERE owner_uid = :owner_uid";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":owner_uid", $uid);
+
+        if (!$stmt->execute()) {
+            $this->cookies->set("res-msg", "unknown_error");
+            return false;
+        }
+
+        $key_row_found = $stmt->rowCount() > 0;
+
+        if ($key_row_found) {
+            $query = "UPDATE `cv_api_keys` SET 
+                        api_key_id = :api_key_id, 
+                        api_key_secret = :api_key_secret, 
+                        api_key_salt = :api_key_salt 
+                  WHERE owner_uid = :owner_uid";
+            $stmt = $this->conn->prepare($query);
+
+            $stmt->bindParam(":api_key_id", $api_key_id);
+            $stmt->bindParam(":api_key_secret", $api_key_secret_hash);
+            $stmt->bindParam(":api_key_salt", $api_key_secret_salt);
+            $stmt->bindParam(":owner_uid", $uid);
+
+            if (!$stmt->execute()) {
+                $this->cookies->set("res-msg", "unknown_error");
+                return false;
+            }
+        } else {
+            $query = "INSERT INTO `cv_api_keys` (api_key_id, api_key_secret, api_key_salt, owner_uid) VALUES (?, ?, ?, ?)";
+            $stmt = $this->conn->prepare($query);
+
+            if (!$stmt->execute([$api_key_id, $api_key_secret_hash, $api_key_secret_salt, $uid])) {
+                $this->cookies->set("res-msg", "unknown_error");
+                return false;
+            }
+        }
+
+        $user_data['api_key_id'] = $api_key_id;
+        $this->sessions->set("login_data", json_encode($user_data));
+
+        $res_keys = json_encode(array(
+            "api_key_id"     => $api_key_id,
+            "api_key_secret" => $api_key_secret
+        ));
+        $res_keys = $this->crypto->aes256($res_keys, $this->sessions->get_session_key());
+
+        $this->cookies->set("res-msg", "regenerate_key_successful");
+        $this->sessions->set("res-key", $res_keys);
         return true;
     }
 

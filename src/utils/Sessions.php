@@ -3,10 +3,18 @@
 
 namespace utils;
 
+require_once "EnvironmentVariables.php";
+
 session_start();
 session_regenerate_id();
 
 class Sessions {
+    private EnvironmentVariables $env;
+
+    public function __construct () {
+        $this->env = new EnvironmentVariables();
+    }
+
     public function validate_all (): void {
         $this->validate_user_agent();
         $this->validate_remote_address();
@@ -53,6 +61,10 @@ class Sessions {
         if (isset($_SESSION['last_access']) && time() > $_SESSION['last_access'] + 3600) {
             $this->destroy_session();
         }
+    }
+
+    public function get_session_key (): string {
+        return $this->env->get_variable("SESSION_KEY");
     }
 
     private function destroy_session (): void {

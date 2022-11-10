@@ -41,3 +41,10 @@ if (isset($_GET['action']) && $_GET['action'] == "sign-out") {
     header("Location: ../../login/");
     exit;
 }
+
+if (isset($_GET['action']) && $_GET['action'] == "regenerate-key") {
+    $account->generate_api_key();
+
+    header("Location: ../settings/");
+    exit;
+}
